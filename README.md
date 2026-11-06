@@ -1,14 +1,12 @@
 # RohanDB
 
-A C++20 persistent key/value storage engine built from first principles. The
-implementation builds on **Storage_Engine_Design_Spec_v3.1.pdf**, including the core,
-robustness, and full-page WAL recovery milestones. It is a learning project, not a
-production database.
+A C++20 persistent key/value storage engine built from first principles, covering
+the core, robustness, and full-page WAL recovery milestones. It is a learning
+project, not a production database.
 
-**Format change:** durability hardening uses database format **4** and WAL format
-**2**. Version-3 files are rejected; there is no in-place migration. Keep any old
-files separately and create a fresh database for this version. Page 1 is now a
-permanent immutable identity page, and data/tree allocation starts at page 2.
+**File format:** database format **4** and WAL format **2**. Page 0 holds the
+metadata, page 1 is a permanent immutable identity page, and data/tree allocation
+starts at page 2.
 
 ## Architecture
 
@@ -159,7 +157,7 @@ hints, and operation pins. Commit/log-sync uncertainty enters Failed state; clos
 then avoids further flushing. A failed WAL is permanently unusable in that engine
 instance, including from reads and existing iterators; flush/reset/append are not
 retried. Close releases resources without issuing checkpoint writes. Before WAL, Failed state cannot undo earlier dirty
-evictions—the PDF's claim that reopening restores the last flush is corrected here.
+evictions, so reopening does not necessarily restore the last flush.
 
 New databases are built as a complete three-page file under a temporary name,
 forced to storage, then published by rename and directory sync. The WAL header
